@@ -1,0 +1,12 @@
+# Node.js and npm
+node_modules/               # Ignore installed dependencies
+backend/.env                # Ignore backend environment variables (e.g., API keys, JWT secret)
+backend/api_requests.log     # Ignore API request log file
+*.log                       # Ignore other log files
+npm-debug.log*              # Ignore npm debug logs
+yarn-error.log*             # Ignore Yarn error logs
+
+# Build 
+frontend/build/             # Ignore React build output
+dist/                       # Ignore other distribution/build folders
+backend/.env
