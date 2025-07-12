@@ -56,7 +56,7 @@ function StudentDashboard({ token }) {
   const enrollCourse = async (courseId) => {
     try {
       setLoading(true);
-      await axios.post(`${API_URL}/courses/${courseId}/enroll`, {}, {
+      await axios.post(`${API_URL}/courses/enroll/${courseId}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessage('Enrolled in course successfully!');
@@ -92,19 +92,9 @@ function StudentDashboard({ token }) {
   };
 
   // Search handler
+  // Live search handler: update searchTerm as user types
   const handleSearch = (e) => {
-    e && e.preventDefault();
-    const keyword = searchTerm.trim().toLowerCase();
-    if (!keyword) {
-      setSearchResults([]);
-      return;
-    }
-    const results = courses.filter(course =>
-      course.title?.toLowerCase().includes(keyword) ||
-      course.description?.toLowerCase().includes(keyword) ||
-      course.content?.toLowerCase().includes(keyword)
-    );
-    setSearchResults(results);
+    setSearchTerm(e.target.value);
   };
 
   useEffect(() => {
@@ -133,10 +123,16 @@ function StudentDashboard({ token }) {
 
   const isEnrolled = (courseId) => enrolledCourses.some(c => c._id === courseId);
 
-  const filteredCourses = courses.filter(course =>
-    course.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter courses live as user types
+  const filteredCourses = courses.filter(course => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) return true;
+    return (
+      course.title?.toLowerCase().includes(keyword) ||
+      course.description?.toLowerCase().includes(keyword) ||
+      course.content?.toLowerCase().includes(keyword)
+    );
+  });
 
   return (
     <div className="student-dashboard">
@@ -169,20 +165,17 @@ function StudentDashboard({ token }) {
           >
             View My Enrolled Courses
           </Button>
-          <form onSubmit={handleSearch} style={{display:'flex',alignItems:'center',gap:0}}>
-            <InputGroup size="sm" className="dashboard-search-group-small">
-              <FormControl
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="form-control"
-                onKeyDown={e => { if (e.key === 'Enter') handleSearch(e); }}
-              />
-              <Button variant="primary" size="sm" className="dashboard-search-btn" type="submit">
-                <FaSearch />
-              </Button>
-            </InputGroup>
-          </form>
+          <InputGroup size="sm" className="dashboard-search-group-small">
+            <FormControl
+              placeholder="Search courses..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="form-control"
+            />
+            <Button variant="primary" size="sm" className="dashboard-search-btn" disabled>
+              <FaSearch />
+            </Button>
+          </InputGroup>
         </div>
         <div className="dashboard-recommendation">
           <h3 className="dashboard-section-title">Course Recommendation</h3>
@@ -265,8 +258,8 @@ function StudentDashboard({ token }) {
           </div>
         ) : (
           <Row xs={1} sm={2} md={3} lg={4} className="g-4 mb-5">
-            {(searchTerm ? searchResults : filteredCourses).length > 0 ? (
-              (searchTerm ? searchResults : filteredCourses).map((course) => (
+            {filteredCourses.length > 0 ? (
+              filteredCourses.map((course) => (
                 <Col key={course._id}>
                   <Card className="dashboard-course-card">
                     <Card.Body className="d-flex flex-column justify-content-between h-100">
